@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Four Fundamental Theorems of Vector Calculus</title>
+<style>
+  :root{
+    --bg:#0b1020;
+    --bg2:#10172b;
+    --panel:#141c33;
+    --panel2:#1a2340;
+    --line:#26314f;
+    --text:#dbe4f5;
+    --dim:#8fa0c2;
+    --greens:#4ade80;
+    --stokes:#38bdf8;
+    --diverg:#fb923c;
+    --gradient:#c084fc;
+    --overview:#facc15;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:radial-gradient(1200px 700px at 70% -10%, #17203c 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:"Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  /* ---------- header & nav ---------- */
+  header{
+    padding:10px 18px 8px;
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+    background:rgba(11,16,32,.7); backdrop-filter:blur(6px);
+  }
+  header .app-title{font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); white-space:nowrap;}
+  header .thm-name{font-size:19px; font-weight:600; color:var(--accent,#fff);}
+  header .thm-formula{
+    font-family:Georgia,"Times New Roman",serif; font-style:italic;
+    font-size:18px; color:var(--text); letter-spacing:.02em;
+  }
+  header .thm-formula sub{font-size:.62em; font-style:normal; color:var(--dim);}
+  nav{
+    display:flex; gap:4px; padding:6px 14px; border-bottom:1px solid var(--line);
+    background:rgba(11,16,32,.5); overflow-x:auto; flex-shrink:0;
+  }
+  nav button{
+    background:transparent; border:none; color:var(--dim); font-size:14px; font-family:inherit;
+    padding:8px 14px; cursor:pointer; border-radius:8px 8px 0 0;
+    border-bottom:2px solid transparent; white-space:nowrap; transition:color .15s;
+  }
+  nav button:hover{color:var(--text);}
+  nav button.active{color:var(--tab-accent); border-bottom-color:var(--tab-accent); font-weight:600;}
+  /* ---------- sections ---------- */
+  main{flex:1; min-height:0; position:relative;}
+  .section{
+    display:none; height:100%; gap:14px; padding:14px;
+  }
+  .section.active{display:flex;}
+  .viz{flex:1.45; min-width:0; display:flex; flex-direction:column; gap:10px;}
+  .canvas-wrap{
+    flex:1; min-height:260px; position:relative; border:1px solid var(--line);
+    border-radius:12px; overflow:hidden; background:linear-gradient(180deg,#0d1428,#0a0f1f);
+  }
+  .canvas-wrap canvas{display:block;}
+  .cam-hint{
+    position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--dim);
+    background:rgba(10,15,31,.6); padding:3px 8px; border-radius:6px; pointer-events:none;
+  }
+  .explain{
+    border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:10px; padding:10px 14px; font-size:13.5px; line-height:1.55; color:var(--dim);
+    background:rgba(20,28,51,.55); flex-shrink:0;
+  }
+  .explain b{color:var(--text);}
+  /* ---------- control panel ---------- */
+  .panel{
+    width:340px; flex-shrink:0; overflow-y:auto; display:flex; flex-direction:column; gap:12px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;
+  }
+  .panel h2{font-size:16px; color:var(--accent); font-weight:600;}
+  .ctl-row{display:flex; flex-direction:column; gap:5px;}
+  .ctl-row label{font-size:11.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim);}
+  select, .btn{
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; font-size:13.5px; font-family:inherit; cursor:pointer; width:100%;
+  }
+  select:focus{outline:1px solid var(--accent);}
+  .transport{display:flex; gap:8px;}
+  .btn{transition:background .15s, border-color .15s; text-align:center;}
+  .btn:hover{background:#212c50; border-color:var(--accent);}
+  .btn.primary{background:var(--accent); color:#0b1020; font-weight:700; border-color:transparent;}
+  .btn.primary:hover{filter:brightness(1.12);}
+  input[type=range]{width:100%; accent-color:var(--accent);}
+  .speed-val{font-size:12px; color:var(--dim); text-align:right;}
+  /* readouts */
+  .readouts{display:flex; gap:10px;}
+  .readout{
+    flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; text-align:center;
+  }
+  .readout .r-label{
+    font-family:Georgia,serif; font-style:italic; font-size:14px; color:var(--dim); margin-bottom:4px;
+  }
+  .readout .r-label sub{font-size:.6em; font-style:normal;}
+  .readout .r-value{
+    font-size:21px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;
+  }
+  .badge{
+    text-align:center; padding:8px 10px; border-radius:10px; font-size:13.5px; font-weight:600;
+    border:1px solid var(--line); background:var(--panel2); color:var(--dim);
+  }
+  .badge.ok{background:rgba(74,222,128,.12); border-color:#2f9e58; color:#6ee7a0;}
+  .badge.warn{background:rgba(250,204,21,.1); border-color:#a08a1e; color:#fde047;}
+  .badge.alert{background:rgba(248,113,113,.1); border-color:#b04545; color:#fca5a5;}
+  .note{font-size:12.5px; line-height:1.5; color:var(--dim);}
+  .note b{color:var(--text);}
+  .chips{display:flex; flex-direction:column; gap:6px;}
+  .chip{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-size:13px; cursor:pointer;
+  }
+  .chip:hover{border-color:var(--accent);}
+  .chip.sel{border-color:var(--accent); background:rgba(192,132,252,.08);}
+  .chip .cv{font-weight:700; font-variant-numeric:tabular-nums; color:var(--accent);}
+  .check-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;}
+  .check-row input{accent-color:var(--accent); width:15px; height:15px; cursor:pointer;}
+  .fab-row{display:flex; gap:10px; font-size:13px;}
+  .fab-row .fab{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:6px 10px; text-align:center;}
+  .fab-row .fab b{color:var(--accent); font-variant-numeric:tabular-nums;}
+  /* section accents */
+  #sec-greens  {--accent:var(--greens);}
+  #sec-stokes  {--accent:var(--stokes);}
+  #sec-diverg  {--accent:var(--diverg);}
+  #sec-gradient{--accent:var(--gradient);}
+  #sec-overview{--accent:var(--overview);}
+  /* ---------- overview ---------- */
+  #sec-overview{display:none; overflow-y:auto; padding:24px;}
+  #sec-overview.active{display:block;}
+  .ov-inner{max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:22px;}
+  .ov-hero{
+    text-align:center; padding:26px; border:1px solid var(--line); border-radius:14px;
+    background:linear-gradient(180deg, rgba(250,204,21,.05), transparent);
+  }
+  .ov-hero .big-formula{
+    font-family:Georgia,serif; font-style:italic; font-size:34px; color:var(--overview); margin:10px 0;
+  }
+  .ov-hero .big-formula sub{font-size:.55em;}
+  .ov-hero p{color:var(--dim); font-size:14.5px; line-height:1.6; max-width:640px; margin:8px auto 0;}
+  table.ov-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.ov-table th, table.ov-table td{
+    border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:middle;
+  }
+  table.ov-table th{background:var(--panel2); color:var(--dim); font-size:11.5px; text-transform:uppercase; letter-spacing:.08em;}
+  table.ov-table td.frm{font-family:Georgia,serif; font-style:italic; font-size:15px; white-space:nowrap;}
+  table.ov-table td.frm sub{font-size:.6em; font-style:normal; color:var(--dim);}
+  .thm-tag{font-weight:700;}
+  .ov-note{color:var(--dim); font-size:14px; line-height:1.65; border:1px solid var(--line); border-left:3px solid var(--overview); border-radius:10px; padding:14px 16px; background:rgba(20,28,51,.55);}
+  .ov-note b{color:var(--text);}
+  /* ---------- responsive ---------- */
+  @media (max-width: 920px){
+    body{overflow:auto;}
+    main{overflow:visible;}
+    .section{flex-direction:column; height:auto;}
+    .section.active{display:flex;}
+    .canvas-wrap{height:52vw; min-height:300px; max-height:420px; flex:none;}
+    .panel{width:100%;}
+    header .thm-formula{font-size:15px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="app-title">Vector Calculus — Fundamental Theorems</span>
+  <span class="thm-name" id="hdr-name"></span>
+  <span class="thm-formula" id="hdr-formula"></span>
+</header>
+
+<nav id="tabs">
+  <button data-tab="greens"   style="--tab-accent:var(--greens)">1 · Green's Theorem</button>
+  <button data-tab="stokes"   style="--tab-accent:var(--stokes)">2 · Stokes' Theorem</button>
+  <button data-tab="diverg"   style="--tab-accent:var(--diverg)">3 · Divergence Theorem</button>
+  <button data-tab="gradient" style="--tab-accent:var(--gradient)">4 · Gradient Theorem</button>
+  <button data-tab="overview" style="--tab-accent:var(--overview)">★ The Big Picture</button>
+</nav>
+
+<main>
+
+  <!-- ================= GREEN'S THEOREM ================= -->
+  <section id="sec-greens" class="section">
+    <div class="viz">
+      <div class="canvas-wrap" id="cv-greens"><div class="cam-hint">drag to orbit · scroll to zoom</div></div>
+      <div class="explain">
+        A particle walks the boundary curve <b>C</b>, accumulating the circulation
+        <b>∮ P dx + Q dy</b> — the net push of the field along the edge. Simultaneously the interior
+        region <b>D</b> lights up cell by cell, each adding its local <b>curl × area</b>.
+        Green's theorem says <b>all the microscopic spinning inside adds up to exactly the
+        circulation around the boundary</b> — watch both counters land on the same number.
+      </div>
+    </div>
+    <aside class="panel">
+      <h2>Green's Theorem</h2>
+      <div class="ctl-row">
+        <label>Vector field F = (P, Q)</label>
+        <select id="g-field">
+          <option value="rotation">Rotation — F = (−y, x)</option>
+          <option value="shear">Shear — F = (y, 0)</option>
+          <option value="swirl">Nonlinear swirl — F = ½(−y³, x³)</option>
+          <option value="radial">Radial (zero curl) — F = (x, y)</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Boundary curve C</label>
+        <select id="g-curve">
+          <option value="circle">Circle</option>
+          <option value="ellipse">Ellipse</option>
+          <option value="star">Five-lobed star</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Animation</label>
+        <div class="transport">
+          <button class="btn primary" id="g-play">▶ Play</button>
+          <button class="btn" id="g-reset">↺ Reset</button>
+        </div>
+      </div>
+      <div class="ctl-row">
+        <label>Speed</label>
+        <input type="range" id="g-speed" min="0.25" max="3" step="0.05" value="1">
+        <div class="speed-val" id="g-speed-val">1.00×</div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="r-label">∮<sub>C</sub> P dx + Q dy</div><div class="r-value" id="g-lhs">0.000</div></div>
+        <div class="readout"><div class="r-label">∬<sub>D</sub> (Q<sub>x</sub> − P<sub>y</sub>) dA</div><div class="r-value" id="g-rhs">0.000</div></div>
+      </div>
+      <div class="badge" id="g-badge">press play to integrate</div>
+      <div class="note"><b>Boundary vs. interior.</b> The left side only ever looks at the edge of the region;
+      the right side only ever looks at what happens inside. The heatmap shows the curl scalar:
+      red = counter-clockwise micro-rotation, blue = clockwise. Try the <b>radial</b> field: zero curl
+      everywhere forces zero circulation, no matter the curve.</div>
+    </aside>
+  </section>
+
+  <!-- ================= STOKES' THEOREM ================= -->
+  <section id="sec-stokes" class="section">
+    <div class="viz">
+      <div class="canvas-wrap" id="cv-stokes"><div class="cam-hint">drag to orbit · scroll to zoom</div></div>
+      <div class="explain">
+        The particle traces the boundary circle <b>C</b>, accumulating <b>∮ F · dr</b>. Meanwhile the
+        curved surface <b>S</b> brightens as we integrate <b>(∇×F) · dS</b> patch by patch — golden arrows
+        show the curl vectors, and the surface color shows how much curl pierces it.
+        <b>Swap the surface</b>: hemisphere, paraboloid or flat disk — the flux of curl is identical,
+        because only the boundary matters.
+      </div>
+    </div>
+    <aside class="panel">
+      <h2>Stokes' Theorem</h2>
+      <div class="ctl-row">
+        <label>Vector field F</label>
+        <select id="s-field">
+          <option value="rot">Rotation — F = (−y, x, 0)</option>
+          <option value="diag">Diagonal curl — F = (z, x, y)</option>
+          <option value="cubic">Swirl — F = ½(−y³, x³, 0)</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Surface S (same boundary C!)</label>
+        <select id="s-surface">
+          <option value="hemi">Hemisphere</option>
+          <option value="parab">Paraboloid cap</option>
+          <option value="disk">Flat disk</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Animation</label>
+        <div class="transport">
+          <button class="btn primary" id="s-play">▶ Play</button>
+          <button class="btn" id="s-reset">↺ Reset</button>
+        </div>
+      </div>
+      <div class="ctl-row">
+        <label>Speed</label>
+        <input type="range" id="s-speed" min="0.25" max="3" step="0.05" value="1">
+        <div class="speed-val" id="s-speed-val">1.00×</div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="r-label">∮<sub>C</sub> F · dr</div><div class="r-value" id="s-lhs">0.000</div></div>
+        <div class="readout"><div class="r-label">∬<sub>S</sub> (∇×F) · dS</div><div class="r-value" id="s-rhs">0.000</div></div>
+      </div>
+      <div class="badge" id="s-badge">press play to integrate</div>
+      <div class="note"><b>Surface independence.</b> Run the animation, note the numbers, then change the
+      surface and run again — the left side is computed on the same boundary curve, and the right side
+      lands on the same value even though the surface (and its curl distribution) is completely different.
+      This is Green's theorem lifted off the plane into 3D.</div>
+    </aside>
+  </section>
+
+  <!-- ================= DIVERGENCE THEOREM ================= -->
+  <section id="sec-diverg" class="section">
+    <div class="viz">
+      <div class="canvas-wrap" id="cv-diverg"><div class="cam-hint">drag to orbit · scroll to zoom</div></div>
+      <div class="explain">
+        Particles ride the field <b>F</b> through the closed surface <b>S</b> — orange arrows mark
+        outflow, cyan inflow. As the sweep plane rises, we sum the flux <b>F · dS</b> through
+        surface patches <i>and</i> the divergence <b>∇·F</b> in the interior voxels (red = source,
+        blue = sink). <b>Everything created inside must escape through the boundary</b> — both
+        totals converge to the same number.
+      </div>
+    </div>
+    <aside class="panel">
+      <h2>Divergence Theorem</h2>
+      <div class="ctl-row">
+        <label>Vector field F</label>
+        <select id="d-field">
+          <option value="source">Source — F = 0.6·r &nbsp;(∇·F = 1.8)</option>
+          <option value="vortex">Vortex — F = 0.8(−y, x, 0) &nbsp;(∇·F = 0)</option>
+          <option value="strat">Stratified — ∇·F = 1 + z</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Closed surface S</label>
+        <select id="d-shape">
+          <option value="sphere">Sphere</option>
+          <option value="cube">Cube</option>
+          <option value="ellipsoid">Ellipsoid</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <label>Animation</label>
+        <div class="transport">
+          <button class="btn primary" id="d-play">▶ Play</button>
+          <button class="btn" id="d-reset">↺ Reset</button>
+        </div>
+      </div>
+      <div class="ctl-row">
+        <label>Speed</label>
+        <input type="range" id="d-speed" min="0.25" max="3" step="0.05" value="1">
+        <div class="speed-val" id="d-speed-val">1.00×</div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="r-label">∬<sub>S</sub> F · dS</div><div class="r-value" id="d-lhs">0.000</div></div>
+        <div class="readout"><div class="r-label">∭<sub>V</sub> (∇·F) dV</div><div class="r-value" id="d-rhs">0.000</div></div>
+      </div>
+      <div class="badge" id="d-badge">press play to integrate</div>
+      <div class="note"><b>Sources vs. flux.</b> The <b>source</b> field creates fluid everywhere
+      (uniform red interior) so flux out is large and positive. The <b>vortex</b> merely stirs —
+      zero divergence, zero net flux, and the particles orbit without escaping. The theorem holds
+      for <i>any</i> closed shape: try the cube and ellipsoid.</div>
+    </aside>
+  </section>
+
+  <!-- ================= GRADIENT THEOREM ================= -->
+  <section id="sec-gradient" class="section">
+    <div class="viz">
+      <div class="canvas-wrap" id="cv-gradient"><div class="cam-hint">drag to orbit · scroll to zoom</div></div>
+      <div class="explain">
+        The terrain is the scalar field <b>f</b>; arrows show its gradient <b>∇f</b>, which always points
+        uphill. A particle hikes from <b>A</b> to <b>B</b> accumulating <b>∫ ∇f · dr</b> — every uphill step adds,
+        every downhill step subtracts. The total is simply the <b>altitude difference f(B) − f(A)</b>,
+        <b>no matter which trail you take</b>. Toggle the non-conservative field to see this
+        path-independence break down.
+      </div>
+    </div>
+    <aside class="panel">
+      <h2>Gradient Theorem</h2>
+      <div class="ctl-row">
+        <label>Path from A to B</label>
+        <div class="chips" id="f-chips">
+          <div class="chip" data-path="straight"><span>Straight line</span><span class="cv" id="f-val-straight">—</span></div>
+          <div class="chip" data-path="arc"><span>Wide arc</span><span class="cv" id="f-val-arc">—</span></div>
+          <div class="chip" data-path="wiggly"><span>Wiggly detour</span><span class="cv" id="f-val-wiggly">—</span></div>
+        </div>
+      </div>
+      <label class="check-row"><input type="checkbox" id="f-noncon">
+        Compare: non-conservative field G = ½(−y, x)</label>
+      <div class="ctl-row">
+        <button class="btn" id="f-newpts">🎲 New endpoints A, B</button>
+      </div>
+      <div class="ctl-row">
+        <label>Animation</label>
+        <div class="transport">
+          <button class="btn primary" id="f-play">▶ Play</button>
+          <button class="btn" id="f-reset">↺ Reset</button>
+        </div>
+      </div>
+      <div class="ctl-row">
+        <label>Speed</label>
+        <input type="range" id="f-speed" min="0.25" max="3" step="0.05" value="1">
+        <div class="speed-val" id="f-speed-val">1.00×</div>
+      </div>
+      <div class="fab-row">
+        <div class="fab">f(A) = <b id="f-fa">0</b></div>
+        <div class="fab">f(B) = <b id="f-fb">0</b></div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="r-label">∫<sub>C</sub> ∇f · dr</div><div class="r-value" id="f-lhs">0.000</div></div>
+        <div class="readout"><div class="r-label">f(B) − f(A)</div><div class="r-value" id="f-rhs">0.000</div></div>
+      </div>
+      <div class="badge" id="f-badge">press play to integrate</div>
+      <div class="note"><b>Path independence.</b> The three path chips above show the line integral
+      along each route — for a gradient field they are always identical. With the non-conservative
+      field <b>G</b> (a pure swirl, which is not the gradient of anything), the three values disagree:
+      the work done depends on the route taken.</div>
+    </aside>
+  </section>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section id="sec-overview" class="section">
+    <div class="ov-inner">
+      <div class="ov-hero">
+        <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)">One theorem to rule them all — the Generalized Stokes Theorem</div>
+        <div class="big-formula">∫<sub>∂Ω</sub> ω &nbsp;=&nbsp; ∫<sub>Ω</sub> dω</div>
+        <p>Every theorem in this explorer is the same statement: <b style="color:var(--text)">the total of a
+        derivative over a region equals the total of the original quantity over the region's boundary.</b>
+        The interior "micro-changes" (dω) telescope — everything cancels except what happens at the edge (∂Ω).</p>
+      </div>
+      <table class="ov-table">
+        <tr><th>Theorem</th><th>Region Ω</th><th>Boundary ∂Ω</th><th>Statement</th></tr>
+        <tr>
+          <td class="thm-tag" style="color:#e2e8f0">Fundamental Thm. of Calculus</td>
+          <td>interval [a, b]</td><td>two points {a, b}</td>
+          <td class="frm">∫<sub>a</sub><sup>b</sup> f′(x) dx = f(b) − f(a)</td>
+        </tr>
+        <tr>
+          <td class="thm-tag" style="color:var(--gradient)">Gradient Theorem</td>
+          <td>curve C in space</td><td>endpoints A, B</td>
+          <td class="frm">∫<sub>C</sub> ∇f · dr = f(B) − f(A)</td>
+        </tr>
+        <tr>
+          <td class="thm-tag" style="color:var(--greens)">Green's Theorem</td>
+          <td>plane region D</td><td>closed curve C</td>
+          <td class="frm">∮<sub>C</sub> P dx + Q dy = ∬<sub>D</sub> (Q<sub>x</sub> − P<sub>y</sub>) dA</td>
+        </tr>
+        <tr>
+          <td class="thm-tag" style="color:var(--stokes)">Stokes' Theorem</td>
+          <td>surface S in 3D</td><td>closed curve C</td>
+          <td class="frm">∮<sub>C</sub> F · dr = ∬<sub>S</sub> (∇×F) · dS</td>
+        </tr>
+        <tr>
+          <td class="thm-tag" style="color:var(--diverg)">Divergence Theorem</td>
+          <td>solid volume V</td><td>closed surface S</td>
+          <td class="frm">∬<sub>S</sub> F · dS = ∭<sub>V</sub> (∇·F) dV</td>
+        </tr>
+      </table>
+      <div class="ov-note">
+        <b>Why does this pattern exist?</b> Chop the region Ω into tiny pieces. On each piece, the
+        derivative (curl, divergence, gradient…) measures the field's imbalance across that piece's own
+        tiny boundary. When you add the pieces back together, every <i>interior</i> wall is shared by two
+        neighbors with opposite orientations — their contributions cancel perfectly. The only walls with
+        no partner are on the outer boundary ∂Ω. So the sum of all microscopic boundary effects
+        <b>telescopes</b> into one macroscopic boundary integral. In dimension 1 that's the Fundamental
+        Theorem of Calculus; in dimensions 2 and 3 it becomes the four theorems you just explored;
+        in the language of differential forms it is a single equation, ∫<sub>∂Ω</sub> ω = ∫<sub>Ω</sub> dω.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   THE FOUR FUNDAMENTAL THEOREMS OF VECTOR CALCULUS — interactive explorer
+   All integrals below are computed by genuine numerical quadrature
+   (midpoint / Riemann sums over real parametrizations). Nothing is scripted:
+   both sides of each theorem converge because the mathematics says they must.
+   ===================================================================== */
+
+const TAU = Math.PI * 2;
+const DUR = 12;                      // seconds for one full integration sweep at speed 1
+const el  = id => document.getElementById(id);
+const fmt = v  => { if(!isFinite(v)) return '—'; const a = Math.abs(v); return (a < 5e-4 ? 0 : v).toFixed(3); };
+
+/* ---------------- small numeric helpers ---------------- */
+const EPS = 1e-4;
+// numerical scalar curl of a planar field (∂Q/∂x − ∂P/∂y)
+function curl2D(P, Q, x, y){
+  return (Q(x+EPS,y) - Q(x-EPS,y)) / (2*EPS) - (P(x,y+EPS) - P(x,y-EPS)) / (2*EPS);
+}
+// numerical curl of a 3D field F(x,y,z) -> [Fx,Fy,Fz]
+function curl3D(F, x, y, z){
+  const dFz_dy = (F(x,y+EPS,z)[2] - F(x,y-EPS,z)[2]) / (2*EPS);
+  const dFy_dz = (F(x,y,z+EPS)[1] - F(x,y,z-EPS)[1]) / (2*EPS);
+  const dFx_dz = (F(x,y,z+EPS)[0] - F(x,y,z-EPS)[0]) / (2*EPS);
+  const dFz_dx = (F(x+EPS,y,z)[2] - F(x-EPS,y,z)[2]) / (2*EPS);
+  const dFy_dx = (F(x+EPS,y,z)[1] - F(x-EPS,y,z)[1]) / (2*EPS);
+  const dFx_dy = (F(x,y+EPS,z)[0] - F(x,y-EPS,z)[0]) / (2*EPS);
+  return [dFz_dy - dFy_dz, dFx_dz - dFz_dx, dFy_dx - dFx_dy];
+}
+// numerical divergence of a 3D field
+function div3D(F, x, y, z){
+  return (F(x+EPS,y,z)[0] - F(x-EPS,y,z)[0]) / (2*EPS)
+       + (F(x,y+EPS,z)[1] - F(x,y-EPS,z)[1]) / (2*EPS)
+       + (F(x,y,z+EPS)[2] - F(x,y,z-EPS)[2]) / (2*EPS);
+}
+// numerical gradient of a scalar f(x,y)
+function grad2D(f, x, y){
+  return [(f(x+EPS,y) - f(x-EPS,y)) / (2*EPS), (f(x,y+EPS) - f(x,y-EPS)) / (2*EPS)];
+}
+
+/* ---------------- color helpers ---------------- */
+function mix(a, b, t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
+// diverging map for signed quantities: blue (neg) -> slate (0) -> red (pos), t in [-1,1]
+function divergeColor(t){
+  t = Math.max(-1, Math.min(1, t));
+  const NEG = [0.20, 0.48, 0.98], MID = [0.30, 0.34, 0.44], POS = [0.99, 0.35, 0.25];
+  return t < 0 ? mix(MID, NEG, -t) : mix(MID, POS, t);
+}
+// sequential map for scalar heights, t in [0,1]: deep blue -> teal -> amber
+function scalarColor(t){
+  t = Math.max(0, Math.min(1, t));
+  const A = [0.12, 0.19, 0.52], B = [0.13, 0.62, 0.68], C = [0.99, 0.80, 0.32];
+  return t < 0.5 ? mix(A, B, t*2) : mix(B, C, (t-0.5)*2);
+}
+
+/* ---------------- generic Three.js scaffolding ---------------- */
+function makeViewer(wrapId, camPos, targetZ = 0){
+  const wrap = el(wrapId);
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  wrap.insertBefore(renderer.domElement, wrap.firstChild);
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.up.set(0, 0, 1);                                  // math convention: z is "up"
+  camera.position.set(camPos[0], camPos[1], camPos[2]);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, targetZ);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.minDistance = 2; controls.maxDistance = 30;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.65);
+  dir.position.set(3, -4, 6);
+  scene.add(dir);
+  function resize(){
+    const w = wrap.clientWidth || 2, h = wrap.clientHeight || 2;
+    renderer.setSize(w, h);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  resize();
+  return {scene, camera, renderer, controls, resize, wrap};
+}
+
+// subtle grid + axes helper laid in the xy-plane (z-up world)
+function addGrid(scene, size, z = 0){
+  const g = new THREE.GridHelper(size, size, 0x2a3a60, 0x1b2440);
+  g.rotation.x = Math.PI / 2; g.position.z = z;
+  scene.add(g);
+  const ax = new THREE.AxesHelper(1.0);
+  ax.position.z = z + 0.002;
+  ax.material.transparent = true; ax.material.opacity = 0.5;
+  scene.add(ax);
+}
+
+/* Build a LineSegments arrow field. items: [{o:[x,y,z], d:[dx,dy,dz], c:[r,g,b]? }] */
+function buildArrows(items, opts = {}){
+  const useColor = items.length > 0 && !!items[0].c;
+  const pos = [], col = [];
+  const dir = new THREE.Vector3(), perp = new THREE.Vector3(), ax = new THREE.Vector3();
+  for(const a of items){
+    const o = a.o, d = a.d;
+    const len = Math.hypot(d[0], d[1], d[2]);
+    if(len < 1e-6) continue;
+    const tip = [o[0]+d[0], o[1]+d[1], o[2]+d[2]];
+    dir.set(d[0], d[1], d[2]).normalize();
+    ax.set(0, 0, 1); if(Math.abs(dir.z) > 0.9) ax.set(1, 0, 0);
+    perp.crossVectors(dir, ax).normalize().multiplyScalar(len * 0.16);
+    const hb = [tip[0]-d[0]*0.28, tip[1]-d[1]*0.28, tip[2]-d[2]*0.28];
+    pos.push(o[0],o[1],o[2],  tip[0],tip[1],tip[2],
+             tip[0],tip[1],tip[2],  hb[0]+perp.x, hb[1]+perp.y, hb[2]+perp.z,
+             tip[0],tip[1],tip[2],  hb[0]-perp.x, hb[1]-perp.y, hb[2]-perp.z);
+    if(useColor) for(let k = 0; k < 6; k++) col.push(a.c[0], a.c[1], a.c[2]);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  if(useColor) g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const m = useColor
+    ? new THREE.LineBasicMaterial({vertexColors:true, transparent:true, opacity:opts.opacity ?? 0.95})
+    : new THREE.LineBasicMaterial({color:opts.color ?? 0x7c8db0, transparent:true, opacity:opts.opacity ?? 0.75});
+  return new THREE.LineSegments(g, m);
+}
+
+function disposeDeep(o){
+  o.traverse(n => {
+    if(n.geometry) n.geometry.dispose();
+    if(n.material) (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => { if(m.map) m.map.dispose(); m.dispose(); });
+  });
+}
+function clearGroup(g){ [...g.children].forEach(c => { g.remove(c); disposeDeep(c); }); }
+
+function makeLabel(text, colorCss){
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.font = 'bold 84px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 10; ctx.strokeStyle = '#0b1020'; ctx.strokeText(text, 64, 66);
+  ctx.fillStyle = colorCss; ctx.fillText(text, 64, 66);
+  const tex = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, transparent:true}));
+  sp.scale.set(0.42, 0.42, 1); sp.renderOrder = 10;
+  return sp;
+}
+
+/* ---------------- transport (play / reset / speed) wiring ---------------- */
+function setPlayLabel(prefix, playing){ el(prefix + '-play').textContent = playing ? '⏸ Pause' : '▶ Play'; }
+function wireTransport(prefix, sec){
+  el(prefix + '-play').addEventListener('click', () => {
+    if(!sec.state.playing && sec.state.t >= 1) sec.resetProgress();
+    sec.state.playing = !sec.state.playing;
+    setPlayLabel(prefix, sec.state.playing);
+  });
+  el(prefix + '-reset').addEventListener('click', () => {
+    sec.state.playing = false; setPlayLabel(prefix, false);
+    sec.resetProgress();
+  });
+  el(prefix + '-speed').addEventListener('input', e => {
+    sec.state.speed = parseFloat(e.target.value);
+    el(prefix + '-speed-val').textContent = sec.state.speed.toFixed(2) + '×';
+  });
+}
+function updateBadge(id, lhs, rhs, done, runText){
+  const b = el(id);
+  if(!done){
+    b.className = 'badge';
+    b.textContent = runText || 'integrating boundary and interior…';
+    return;
+  }
+  const eps = Math.max(0.06, 0.04 * Math.max(Math.abs(lhs), Math.abs(rhs)));
+  if(Math.abs(lhs - rhs) < eps){ b.className = 'badge ok'; b.textContent = '✓ Match! Both sides agree'; }
+  else { b.className = 'badge warn'; b.textContent = '≈ close — numerical gap ' + fmt(lhs - rhs); }
+}
+
+/* =====================================================================
+   1. GREEN'S THEOREM   ∮_C P dx + Q dy  =  ∬_D (Qx − Py) dA
+   ===================================================================== */
+const Greens = (() => {
+  const fields = {
+    rotation: {P:(x,y) => -y,            Q:(x,y) => x},
+    shear:    {P:(x,y) => y,             Q:(x,y) => 0},
+    swirl:    {P:(x,y) => -0.5*y*y*y,    Q:(x,y) => 0.5*x*x*x},
+    radial:   {P:(x,y) => x,             Q:(x,y) => y},
+  };
+  const curves = {
+    circle:  th => ({x: 1.6*Math.cos(th),  y: 1.6*Math.sin(th)}),
+    ellipse: th => ({x: 2.1*Math.cos(th),  y: 1.15*Math.sin(th)}),
+    star:    th => { const r = 1.45*(1 + 0.28*Math.cos(5*th)); return {x: r*Math.cos(th), y: r*Math.sin(th)}; },
+  };
+
+  const sec = {
+    state: {t:0, playing:false, speed:1},
+    viewer: null, dyn: null, particle: null,
+    curveFn: null, cumLine: null,
+    cells: [], cumArea: null, brightCols: [], dimCols: [],
+    hm: null, activated: 0,
+  };
+
+  sec.init = function(){
+    sec.viewer = makeViewer('cv-greens', [0, -5.6, 4.6]);
+    addGrid(sec.viewer.scene, 6, -0.06);
+    sec.dyn = new THREE.Group();
+    sec.viewer.scene.add(sec.dyn);
+    sec.particle = new THREE.Mesh(
+      new THREE.SphereGeometry(0.07, 16, 16),
+      new THREE.MeshBasicMaterial({color:0x4ade80}));
+    sec.viewer.scene.add(sec.particle);
+    el('g-field').addEventListener('change', sec.rebuild);
+    el('g-curve').addEventListener('change', sec.rebuild);
+    wireTransport('g', sec);
+    sec.rebuild();
+  };
+
+  sec.rebuild = function(){
+    const {P, Q} = fields[el('g-field').value];
+    sec.curveFn = curves[el('g-curve').value];
+    clearGroup(sec.dyn);
+
+    /* --- boundary polar-radius lookup (all curves are star-shaped about origin) --- */
+    const BINS = 1024, radAt = new Float64Array(BINS);
+    for(let k = 0; k < 4096; k++){
+      const p = sec.curveFn(k/4096*TAU);
+      const ang = (Math.atan2(p.y, p.x) + TAU) % TAU;
+      const bin = Math.floor(ang/TAU*BINS) % BINS;
+      radAt[bin] = Math.max(radAt[bin], Math.hypot(p.x, p.y));
+    }
+    const inside = (x, y) => {
+      const ang = (Math.atan2(y, x) + TAU) % TAU;
+      return Math.hypot(x, y) <= radAt[Math.floor(ang/TAU*BINS) % BINS];
+    };
+
+    /* --- LHS: cumulative line integral, midpoint rule over 720 segments --- */
+    const N = 720;
+    sec.cumLine = new Float64Array(N + 1);
+    for(let i = 0; i < N; i++){
+      const p0 = sec.curveFn(i/N*TAU), p1 = sec.curveFn((i+1)/N*TAU);
+      const xm = (p0.x+p1.x)/2, ym = (p0.y+p1.y)/2;
+      sec.cumLine[i+1] = sec.cumLine[i] + P(xm,ym)*(p1.x-p0.x) + Q(xm,ym)*(p1.y-p0.y);
+    }
+
+    /* --- RHS: curl over interior cells, sorted by polar angle for the sweep --- */
+    const h = 0.07, EXT = 2.4;
+    sec.cells = [];
+    for(let x = -EXT; x < EXT; x += h) for(let y = -EXT; y < EXT; y += h){
+      const cx = x + h/2, cy = y + h/2;
+      if(!inside(cx, cy)) continue;
+      const c = curl2D(P, Q, cx, cy);
+      sec.cells.push({x:cx, y:cy, curl:c, contrib:c*h*h, ang:(Math.atan2(cy,cx)+TAU)%TAU});
+    }
+    sec.cells.sort((a,b) => a.ang - b.ang);
+    sec.cumArea = new Float64Array(sec.cells.length + 1);
+    for(let i = 0; i < sec.cells.length; i++) sec.cumArea[i+1] = sec.cumArea[i] + sec.cells[i].contrib;
+
+    /* --- curl heatmap: one InstancedMesh, dim until swept --- */
+    let maxAbs = 1e-9;
+    for(const c of sec.cells) maxAbs = Math.max(maxAbs, Math.abs(c.curl));
+    const geo = new THREE.BoxGeometry(h*0.86, h*0.86, 0.015);
+    const mat = new THREE.MeshBasicMaterial();
+    sec.hm = new THREE.InstancedMesh(geo, mat, sec.cells.length);
+    const M = new THREE.Matrix4();
+    sec.brightCols = []; sec.dimCols = [];
+    for(let i = 0; i < sec.cells.length; i++){
+      const c = sec.cells[i];
+      M.setPosition(c.x, c.y, -0.03);
+      sec.hm.setMatrixAt(i, M);
+      const rgb = divergeColor(c.curl / maxAbs);
+      sec.brightCols.push(new THREE.Color(rgb[0], rgb[1], rgb[2]));
+      sec.dimCols.push(new THREE.Color(rgb[0]*0.18+0.045, rgb[1]*0.18+0.05, rgb[2]*0.18+0.08));
+      sec.hm.setColorAt(i, sec.dimCols[i]);
+    }
+    if(sec.hm.instanceColor) sec.hm.instanceColor.needsUpdate = true;
+    sec.dyn.add(sec.hm);
+
+    /* --- boundary curve --- */
+    const cpts = [];
+    for(let i = 0; i <= 256; i++){ const p = sec.curveFn(i/256*TAU); cpts.push(new THREE.Vector3(p.x, p.y, 0.02)); }
+    sec.dyn.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(cpts),
+      new THREE.LineBasicMaterial({color:0x4ade80, linewidth:2})));
+
+    /* --- vector field arrows on the plane --- */
+    const arrows = []; let maxMag = 1e-9;
+    for(let x = -EXT; x <= EXT; x += 0.4) for(let y = -EXT; y <= EXT; y += 0.4)
+      maxMag = Math.max(maxMag, Math.hypot(P(x,y), Q(x,y)));
+    for(let x = -EXT; x <= EXT; x += 0.4) for(let y = -EXT; y <= EXT; y += 0.4){
+      const u = P(x,y), v = Q(x,y), m = Math.hypot(u,v);
+      if(m < 1e-6) continue;
+      const L = 0.10 + 0.24*(m/maxMag);
+      arrows.push({o:[x, y, 0.05], d:[u/m*L, v/m*L, 0]});
+    }
+    sec.dyn.add(buildArrows(arrows, {color:0x64748b, opacity:0.6}));
+
+    sec.resetProgress();
+  };
+
+  sec.resetProgress = function(){
+    sec.state.t = 0; sec.activated = 0;
+    for(let i = 0; i < sec.cells.length; i++) sec.hm.setColorAt(i, sec.dimCols[i]);
+    if(sec.hm.instanceColor) sec.hm.instanceColor.needsUpdate = true;
+    sec.refresh();
+  };
+
+  sec.refresh = function(){
+    const t = sec.state.t;
+    const p = sec.curveFn(t*TAU);
+    sec.particle.position.set(p.x, p.y, 0.06);
+    const target = Math.floor(t * sec.cells.length);
+    if(target > sec.activated){
+      for(let i = sec.activated; i < target; i++) sec.hm.setColorAt(i, sec.brightCols[i]);
+      sec.hm.instanceColor.needsUpdate = true;
+      sec.activated = target;
+    }
+    const lhs = sec.cumLine[Math.round(t*(sec.cumLine.length-1))];
+    const rhs = sec.cumArea[target];
+    el('g-lhs').textContent = fmt(lhs);
+    el('g-rhs').textContent = fmt(rhs);
+    updateBadge('g-badge', lhs, rhs, t >= 1, t === 0 ? 'press play to integrate' : undefined);
+  };
+
+  sec.tick = function(dt){
+    if(sec.state.playing){
+      sec.state.t = Math.min(1, sec.state.t + dt*sec.state.speed/DUR);
+      if(sec.state.t >= 1){ sec.state.playing = false; setPlayLabel('g', false); }
+      sec.refresh();
+    }
+  };
+  return sec;
+})();
+
+/* =====================================================================
+   2. STOKES' THEOREM   ∮_C F·dr  =  ∬_S (∇×F)·dS
+   ===================================================================== */
+const Stokes = (() => {
+  const R = 1.4;                       // shared boundary: circle of radius R at z=0
+  const fields = {
+    rot:   (x,y,z) => [-y, x, 0],
+    diag:  (x,y,z) => [z, x, y],
+    cubic: (x,y,z) => [-0.5*y*y*y, 0.5*x*x*x, 0],
+  };
+  const surfaces = {
+    hemi:  (u,v) => { const t = v*Math.PI/2; return [R*Math.sin(t)*Math.cos(u), R*Math.sin(t)*Math.sin(u), R*Math.cos(t)]; },
+    parab: (u,v) => [v*R*Math.cos(u), v*R*Math.sin(u), 1.15*(1 - v*v)],
+    disk:  (u,v) => [v*R*Math.cos(u), v*R*Math.sin(u), 0],
+  };
+  const NU = 96, NV = 22;
+
+  const sec = {
+    state:{t:0, playing:false, speed:1},
+    viewer:null, dyn:null, particle:null,
+    cumLine:null, cumSurf:null,
+    surfGeo:null, brightColors:null, dimColors:null, activeCol:-1,
+  };
+
+  // oriented area-vector pv × pu (consistent with CCW boundary seen from +z)
+  function paramNormal(P, u, v){
+    const e = 1e-4, vc = Math.max(e, Math.min(1-e, v));
+    const a = P(u, vc+e), b = P(u, vc-e), c = P(u+e, vc), d = P(u-e, vc);
+    const pv = [(a[0]-b[0])/(2*e), (a[1]-b[1])/(2*e), (a[2]-b[2])/(2*e)];
+    const pu = [(c[0]-d[0])/(2*e), (c[1]-d[1])/(2*e), (c[2]-d[2])/(2*e)];
+    return [pv[1]*pu[2]-pv[2]*pu[1], pv[2]*pu[0]-pv[0]*pu[2], pv[0]*pu[1]-pv[1]*pu[0]];
+  }
+
+  sec.init = function(){
+    sec.viewer = makeViewer('cv-stokes', [3.4, -4.4, 2.8], 0.5);
+    addGrid(sec.viewer.scene, 6, -0.02);
+    sec.dyn = new THREE.Group(); sec.viewer.scene.add(sec.dyn);
+    sec.particle = new THREE.Mesh(
+      new THREE.SphereGeometry(0.075, 16, 16),
+      new THREE.MeshBasicMaterial({color:0x38bdf8}));
+    sec.viewer.scene.add(sec.particle);
+    el('s-field').addEventListener('change', sec.rebuild);
+    el('s-surface').addEventListener('change', sec.rebuild);
+    wireTransport('s', sec);
+    sec.rebuild();
+  };
+
+  sec.rebuild = function(){
+    const F = fields[el('s-field').value];
+    const P = surfaces[el('s-surface').value];
+    clearGroup(sec.dyn);
+
+    /* --- LHS: line integral around boundary circle, midpoint rule --- */
+    const N = 720;
+    sec.cumLine = new Float64Array(N + 1);
+    const bp = u => [R*Math.cos(u), R*Math.sin(u), 0];
+    for(let i = 0; i < N; i++){
+      const a = bp(i/N*TAU), b = bp((i+1)/N*TAU);
+      const m = [(a[0]+b[0])/2, (a[1]+b[1])/2, 0];
+      const f = F(m[0], m[1], m[2]);
+      sec.cumLine[i+1] = sec.cumLine[i] + f[0]*(b[0]-a[0]) + f[1]*(b[1]-a[1]) + f[2]*(b[2]-a[2]);
+    }
+
+    /* --- RHS: (∇×F)·dS over parametric cells, swept in u (angle) sync with particle --- */
+    const du = TAU/NU, dv = 1/NV;
+    sec.cumSurf = new Float64Array(NU*NV + 1);
+    const curlArrowPts = [];
+    let k = 0;
+    for(let i = 0; i < NU; i++){
+      for(let j = 0; j < NV; j++){
+        const u = (i+0.5)*du, v = (j+0.5)*dv;
+        const c = P(u, v);
+        const nv = paramNormal(P, u, v);
+        const cu = curl3D(F, c[0], c[1], c[2]);
+        sec.cumSurf[k+1] = sec.cumSurf[k] + (cu[0]*nv[0] + cu[1]*nv[1] + cu[2]*nv[2])*du*dv;
+        k++;
+      }
+    }
+
+    /* --- surface mesh with per-vertex curl·n̂ colors (dim until swept) --- */
+    const verts = [], cols = [], idx = [];
+    let maxAbs = 1e-9;
+    const vertVals = [];
+    for(let j = 0; j <= NV; j++) for(let i = 0; i <= NU; i++){
+      const u = i/NU*TAU, v = j/NV;
+      const p = P(u, v);
+      verts.push(p[0], p[1], p[2]);
+      const nv = paramNormal(P, u, v);
+      const nl = Math.hypot(nv[0], nv[1], nv[2]) || 1;
+      const cu = curl3D(F, p[0], p[1], p[2]);
+      const s = (cu[0]*nv[0] + cu[1]*nv[1] + cu[2]*nv[2]) / nl;
+      vertVals.push(s);
+      maxAbs = Math.max(maxAbs, Math.abs(s));
+    }
+    sec.brightColors = new Float32Array(vertVals.length*3);
+    sec.dimColors    = new Float32Array(vertVals.length*3);
+    for(let n = 0; n < vertVals.length; n++){
+      const rgb = divergeColor(vertVals[n]/maxAbs);
+      sec.brightColors[n*3] = rgb[0];   sec.brightColors[n*3+1] = rgb[1];   sec.brightColors[n*3+2] = rgb[2];
+      sec.dimColors[n*3] = rgb[0]*0.22+0.05; sec.dimColors[n*3+1] = rgb[1]*0.22+0.06; sec.dimColors[n*3+2] = rgb[2]*0.22+0.09;
+      cols.push(sec.dimColors[n*3], sec.dimColors[n*3+1], sec.dimColors[n*3+2]);
+    }
+    for(let j = 0; j < NV; j++) for(let i = 0; i < NU; i++){
+      const a = j*(NU+1)+i, b = a+1, c = a+(NU+1), d = c+1;
+      idx.push(a, b, d,  a, d, c);
+    }
+    sec.surfGeo = new THREE.BufferGeometry();
+    sec.surfGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    sec.surfGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+    sec.surfGeo.setIndex(idx);
+    sec.dyn.add(new THREE.Mesh(sec.surfGeo,
+      new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.DoubleSide})));
+
+    /* --- curl vectors sampled on the surface (golden) --- */
+    const curlArrows = [];
+    for(let i = 0; i < 14; i++) for(let j = 0; j < 4; j++){
+      const u = (i+0.5)/14*TAU, v = (j+0.5)/4;
+      const p = P(u, v);
+      const cu = curl3D(F, p[0], p[1], p[2]);
+      const m = Math.hypot(cu[0], cu[1], cu[2]);
+      if(m < 1e-4) continue;
+      const L = Math.min(0.5, 0.10 + 0.10*m);
+      curlArrows.push({o:[p[0], p[1], p[2]+0.01], d:[cu[0]/m*L, cu[1]/m*L, cu[2]/m*L]});
+    }
+    const ca = buildArrows(curlArrows, {color:0xffd54a, opacity:0.95});
+    sec.dyn.add(ca);
+
+    /* --- ambient field arrows in the surrounding volume --- */
+    const fa = [];
+    for(let x = -2; x <= 2; x += 1) for(let y = -2; y <= 2; y += 1) for(let z = 0; z <= 1.6; z += 0.8){
+      const f = F(x, y, z), m = Math.hypot(f[0], f[1], f[2]);
+      if(m < 1e-4) continue;
+      const L = Math.min(0.34, 0.08 + 0.07*m);
+      fa.push({o:[x, y, z], d:[f[0]/m*L, f[1]/m*L, f[2]/m*L]});
+    }
+    sec.dyn.add(buildArrows(fa, {color:0x475a80, opacity:0.5}));
+
+    /* --- boundary tube --- */
+    const bpts = [];
+    for(let i = 0; i <= 128; i++) bpts.push(new THREE.Vector3(R*Math.cos(i/128*TAU), R*Math.sin(i/128*TAU), 0));
+    sec.dyn.add(new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bpts, true), 128, 0.025, 8, true),
+      new THREE.MeshBasicMaterial({color:0x38bdf8})));
+
+    sec.resetProgress();
+  };
+
+  sec.resetProgress = function(){
+    sec.state.t = 0; sec.activeCol = -1;
+    const attr = sec.surfGeo.getAttribute('color');
+    attr.array.set(sec.dimColors); attr.needsUpdate = true;
+    sec.refresh();
+  };
+
+  sec.refresh = function(){
+    const t = sec.state.t;
+    sec.particle.position.set(R*Math.cos(t*TAU), R*Math.sin(t*TAU), 0);
+    // brighten surface columns up to current angle
+    const targetCol = Math.min(NU, Math.floor(t*NU)) - 1;
+    if(targetCol > sec.activeCol){
+      const attr = sec.surfGeo.getAttribute('color');
+      for(let i = sec.activeCol+1; i <= targetCol; i++){
+        for(let j = 0; j <= NV; j++){
+          for(const ii of [i, i+1]){           // brighten both edges of the column
+            const n = (j*(NU+1)+ii)*3;
+            attr.array[n] = sec.brightColors[n]; attr.array[n+1] = sec.brightColors[n+1]; attr.array[n+2] = sec.brightColors[n+2];
+          }
+        }
+      }
+      attr.needsUpdate = true;
+      sec.activeCol = targetCol;
+    }
+    const lhs = sec.cumLine[Math.round(t*(sec.cumLine.length-1))];
+    const rhs = sec.cumSurf[Math.round(t*(sec.cumSurf.length-1))];
+    el('s-lhs').textContent = fmt(lhs);
+    el('s-rhs').textContent = fmt(rhs);
+    updateBadge('s-badge', lhs, rhs, t >= 1, t === 0 ? 'press play to integrate' : undefined);
+  };
+
+  sec.tick = function(dt){
+    if(sec.state.playing){
+      sec.state.t = Math.min(1, sec.state.t + dt*sec.state.speed/DUR);
+      if(sec.state.t >= 1){ sec.state.playing = false; setPlayLabel('s', false); }
+      sec.refresh();
+    }
+  };
+  return sec;
+})();
+
+/* =====================================================================
+   3. DIVERGENCE THEOREM   ∬_S F·dS  =  ∭_V (∇·F) dV
+   ===================================================================== */
+const Diverg = (() => {
+  const fields = {
+    source: (x,y,z) => [0.6*x, 0.6*y, 0.6*z],
+    vortex: (x,y,z) => [-0.8*y, 0.8*x, 0],
+    strat:  (x,y,z) => [x*(0.5+0.5*z), y*(0.5+0.5*z), 0],
+  };
+  const shapes = {
+    sphere:    {bbox:[1.45,1.45,1.45], inside:(x,y,z) => x*x+y*y+z*z <= 1.4*1.4},
+    cube:      {bbox:[1.2,1.2,1.2],    inside:(x,y,z) => Math.max(Math.abs(x),Math.abs(y),Math.abs(z)) <= 1.2},
+    ellipsoid: {bbox:[1.8,1.2,1.0],    inside:(x,y,z) => (x/1.8)**2 + (y/1.2)**2 + (z/1.0)**2 <= 1},
+  };
+
+  const sec = {
+    state:{t:0, playing:false, speed:1},
+    viewer:null, dyn:null,
+    patches:[], cumFlux:null, voxels:[], cumVol:null,
+    vox:null, brightCols:[], dimCols:[], activated:0,
+    sweep:null, zRange:[-1.5,1.5],
+    pGeom:null, pPos:null, pCol:null, pLife:null, F:null, insideFn:null,
+  };
+
+  /* generate outward-oriented surface patches {c:[x,y,z], N:[Ax,Ay,Az] (area vector)} */
+  function makePatches(shapeKey){
+    const out = [];
+    if(shapeKey === 'cube'){
+      const H = 1.2, n = 15, s = 2*H/n, area = s*s;
+      const faces = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+      for(const f of faces) for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){
+        const a = -H + (i+0.5)*s, b = -H + (j+0.5)*s;
+        let c;
+        if(f[0] !== 0)      c = [f[0]*H, a, b];
+        else if(f[1] !== 0) c = [a, f[1]*H, b];
+        else                c = [a, b, f[2]*H];
+        out.push({c, N:[f[0]*area, f[1]*area, f[2]*area]});
+      }
+      return out;
+    }
+    // sphere / ellipsoid via spherical parametrization
+    const [ax, by, cz] = shapeKey === 'sphere' ? [1.4, 1.4, 1.4] : [1.8, 1.2, 1.0];
+    const p = (u, v) => [ax*Math.sin(v)*Math.cos(u), by*Math.sin(v)*Math.sin(u), cz*Math.cos(v)];
+    const NUs = 56, NVs = 28, du = TAU/NUs, dv = Math.PI/NVs, e = 1e-4;
+    for(let i = 0; i < NUs; i++) for(let j = 0; j < NVs; j++){
+      const u = (i+0.5)*du, v = (j+0.5)*dv;
+      const c = p(u, v);
+      const a1 = p(u+e, v), a2 = p(u-e, v), b1 = p(u, v+e), b2 = p(u, v-e);
+      const pu = [(a1[0]-a2[0])/(2*e), (a1[1]-a2[1])/(2*e), (a1[2]-a2[2])/(2*e)];
+      const pv = [(b1[0]-b2[0])/(2*e), (b1[1]-b2[1])/(2*e), (b1[2]-b2[2])/(2*e)];
+      let N = [pu[1]*pv[2]-pu[2]*pv[1], pu[2]*pv[0]-pu[0]*pv[2], pu[0]*pv[1]-pu[1]*pv[0]];
+      if(N[0]*c[0] + N[1]*c[1] + N[2]*c[2] < 0) N = [-N[0], -N[1], -N[2]];  // force outward
+      out.push({c, N:[N[0]*du*dv, N[1]*du*dv, N[2]*du*dv]});
+    }
+    return out;
+  }
+
+  sec.init = function(){
+    sec.viewer = makeViewer('cv-diverg', [3.6, -4.8, 3.0]);
+    addGrid(sec.viewer.scene, 6, -1.8);
+    sec.dyn = new THREE.Group(); sec.viewer.scene.add(sec.dyn);
+
+    /* flow particles (ambient, always animating) */
+    const NP = 380;
+    sec.pPos  = new Float32Array(NP*3);
+    sec.pCol  = new Float32Array(NP*3);
+    sec.pLife = new Float32Array(NP);
+    sec.pGeom = new THREE.BufferGeometry();
+    sec.pGeom.setAttribute('position', new THREE.BufferAttribute(sec.pPos, 3));
+    sec.pGeom.setAttribute('color', new THREE.BufferAttribute(sec.pCol, 3));
+    const pts = new THREE.Points(sec.pGeom,
+      new THREE.PointsMaterial({size:0.055, vertexColors:true, transparent:true, opacity:0.9}));
+    sec.viewer.scene.add(pts);
+
+    el('d-field').addEventListener('change', sec.rebuild);
+    el('d-shape').addEventListener('change', sec.rebuild);
+    wireTransport('d', sec);
+    sec.rebuild();
+  };
+
+  function respawn(i){
+    const F = sec.F;
+    const x = (Math.random()*2-1)*2.0, y = (Math.random()*2-1)*2.0, z = (Math.random()*2-1)*2.0;
+    sec.pPos[i*3] = x; sec.pPos[i*3+1] = y; sec.pPos[i*3+2] = z;
+    sec.pLife[i] = 3 + Math.random()*6;
+    const f = F(x, y, z);
+    const rl = Math.hypot(x, y, z) || 1;
+    const outward = (f[0]*x + f[1]*y + f[2]*z)/rl;
+    const c = outward >= 0 ? [1, 0.62, 0.25] : [0.35, 0.85, 1];   // orange out / cyan in
+    sec.pCol[i*3] = c[0]; sec.pCol[i*3+1] = c[1]; sec.pCol[i*3+2] = c[2];
+  }
+
+  sec.rebuild = function(){
+    sec.F = fields[el('d-field').value];
+    const shapeKey = el('d-shape').value;
+    const shape = shapes[shapeKey];
+    sec.insideFn = shape.inside;
+    clearGroup(sec.dyn);
+
+    /* --- LHS: surface flux, patches sorted by z (bottom-up sweep) --- */
+    sec.patches = makePatches(shapeKey).sort((a,b) => a.c[2] - b.c[2]);
+    sec.cumFlux = new Float64Array(sec.patches.length + 1);
+    for(let i = 0; i < sec.patches.length; i++){
+      const {c, N} = sec.patches[i];
+      const f = sec.F(c[0], c[1], c[2]);
+      sec.cumFlux[i+1] = sec.cumFlux[i] + f[0]*N[0] + f[1]*N[1] + f[2]*N[2];
+    }
+
+    /* --- RHS: divergence over interior voxels, also sorted by z ---
+       grid steps are fitted per axis so the voxels tile the bounding box
+       exactly (crucial for the cube: no systematic boundary over-count) */
+    const [bx, by, bz] = shape.bbox;
+    const nx = Math.round(2*bx/0.19), ny = Math.round(2*by/0.19), nz = Math.round(2*bz/0.19);
+    const hx = 2*bx/nx, hy = 2*by/ny, hz = 2*bz/nz, dV = hx*hy*hz;
+    const h = (hx + hy + hz)/3;
+    sec.voxels = [];
+    for(let k = 0; k < nz; k++) for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
+      const x = -bx + (i+0.5)*hx, y = -by + (j+0.5)*hy, z = -bz + (k+0.5)*hz;
+      if(!sec.insideFn(x, y, z)) continue;
+      const d = div3D(sec.F, x, y, z);
+      sec.voxels.push({x, y, z, div:d, contrib:d*dV});
+    }
+    sec.voxels.sort((a,b) => a.z - b.z);
+    sec.cumVol = new Float64Array(sec.voxels.length + 1);
+    for(let i = 0; i < sec.voxels.length; i++) sec.cumVol[i+1] = sec.cumVol[i] + sec.voxels[i].contrib;
+    sec.zRange = [-bz, bz];
+
+    /* --- voxel point cloud (InstancedMesh), dim until swept --- */
+    let maxAbs = 1e-9;
+    for(const v of sec.voxels) maxAbs = Math.max(maxAbs, Math.abs(v.div));
+    sec.vox = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(h*0.42, h*0.42, h*0.42),
+      new THREE.MeshBasicMaterial({transparent:true, opacity:0.85}),
+      sec.voxels.length);
+    const M = new THREE.Matrix4();
+    sec.brightCols = []; sec.dimCols = [];
+    for(let i = 0; i < sec.voxels.length; i++){
+      const v = sec.voxels[i];
+      M.setPosition(v.x, v.y, v.z);
+      sec.vox.setMatrixAt(i, M);
+      const rgb = divergeColor(v.div/maxAbs);
+      sec.brightCols.push(new THREE.Color(rgb[0], rgb[1], rgb[2]));
+      sec.dimCols.push(new THREE.Color(rgb[0]*0.12+0.03, rgb[1]*0.12+0.035, rgb[2]*0.12+0.06));
+      sec.vox.setColorAt(i, sec.dimCols[i]);
+    }
+    if(sec.vox.instanceColor) sec.vox.instanceColor.needsUpdate = true;
+    sec.dyn.add(sec.vox);
+
+    /* --- translucent closed surface --- */
+    let surfGeo;
+    if(shapeKey === 'sphere')         surfGeo = new THREE.SphereGeometry(1.4, 48, 32);
+    else if(shapeKey === 'cube')      surfGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
+    else { surfGeo = new THREE.SphereGeometry(1, 48, 32); }
+    const surf = new THREE.Mesh(surfGeo, new THREE.MeshPhongMaterial({
+      color:0xfb923c, transparent:true, opacity:0.10, side:THREE.DoubleSide,
+      depthWrite:false, shininess:60}));
+    if(shapeKey === 'ellipsoid') surf.scale.set(1.8, 1.2, 1.0);
+    sec.dyn.add(surf);
+
+    /* --- outward normal arrows, tinted by local flux sign --- */
+    const na = [];
+    const step = Math.max(1, Math.floor(sec.patches.length/180));
+    for(let i = 0; i < sec.patches.length; i += step){
+      const {c, N} = sec.patches[i];
+      const nl = Math.hypot(N[0], N[1], N[2]) || 1;
+      const f = sec.F(c[0], c[1], c[2]);
+      const flux = (f[0]*N[0] + f[1]*N[1] + f[2]*N[2])/nl;
+      const col = Math.abs(flux) < 1e-4 ? [0.42, 0.48, 0.6] : (flux > 0 ? [1, 0.62, 0.25] : [0.35, 0.85, 1]);
+      na.push({o:c, d:[N[0]/nl*0.26, N[1]/nl*0.26, N[2]/nl*0.26], c:col});
+    }
+    sec.dyn.add(buildArrows(na, {opacity:0.85}));
+
+    /* --- sweep plane indicator --- */
+    sec.sweep = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.6, 4.6),
+      new THREE.MeshBasicMaterial({color:0xfb923c, transparent:true, opacity:0.06, side:THREE.DoubleSide, depthWrite:false}));
+    sec.dyn.add(sec.sweep);
+    const border = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-2.3,-2.3,0), new THREE.Vector3(2.3,-2.3,0),
+        new THREE.Vector3(2.3,2.3,0), new THREE.Vector3(-2.3,2.3,0)]),
+      new THREE.LineBasicMaterial({color:0xfb923c, transparent:true, opacity:0.35}));
+    sec.sweep.userData.border = border;
+    sec.dyn.add(border);
+
+    for(let i = 0; i < sec.pLife.length; i++) respawn(i);
+    sec.resetProgress();
+  };
+
+  sec.resetProgress = function(){
+    sec.state.t = 0; sec.activated = 0;
+    for(let i = 0; i < sec.voxels.length; i++) sec.vox.setColorAt(i, sec.dimCols[i]);
+    if(sec.vox.instanceColor) sec.vox.instanceColor.needsUpdate = true;
+    sec.refresh();
+  };
+
+  sec.refresh = function(){
+    const t = sec.state.t;
+    const z = sec.zRange[0] + (sec.zRange[1]-sec.zRange[0])*t;
+    sec.sweep.position.z = z; sec.sweep.userData.border.position.z = z;
+    const target = Math.floor(t*sec.voxels.length);
+    if(target > sec.activated){
+      for(let i = sec.activated; i < target; i++) sec.vox.setColorAt(i, sec.brightCols[i]);
+      sec.vox.instanceColor.needsUpdate = true;
+      sec.activated = target;
+    }
+    const lhs = sec.cumFlux[Math.round(t*(sec.cumFlux.length-1))];
+    const rhs = sec.cumVol[target];
+    el('d-lhs').textContent = fmt(lhs);
+    el('d-rhs').textContent = fmt(rhs);
+    updateBadge('d-badge', lhs, rhs, t >= 1, t === 0 ? 'press play to integrate' : undefined);
+  };
+
+  sec.tick = function(dt){
+    /* ambient particle advection (always on for liveliness) */
+    const F = sec.F, n = sec.pLife.length;
+    for(let i = 0; i < n; i++){
+      const x = sec.pPos[i*3], y = sec.pPos[i*3+1], z = sec.pPos[i*3+2];
+      const f = F(x, y, z);
+      sec.pPos[i*3]   += f[0]*dt*0.45;
+      sec.pPos[i*3+1] += f[1]*dt*0.45;
+      sec.pPos[i*3+2] += f[2]*dt*0.45;
+      sec.pLife[i] -= dt;
+      if(sec.pLife[i] < 0 || Math.abs(sec.pPos[i*3]) > 2.6 || Math.abs(sec.pPos[i*3+1]) > 2.6 || Math.abs(sec.pPos[i*3+2]) > 2.6)
+        respawn(i);
+    }
+    sec.pGeom.attributes.position.needsUpdate = true;
+    sec.pGeom.attributes.color.needsUpdate = true;
+
+    if(sec.state.playing){
+      sec.state.t = Math.min(1, sec.state.t + dt*sec.state.speed/DUR);
+      if(sec.state.t >= 1){ sec.state.playing = false; setPlayLabel('d', false); }
+      sec.refresh();
+    }
+  };
+  return sec;
+})();
+
+/* =====================================================================
+   4. GRADIENT THEOREM   ∫_C ∇f·dr  =  f(B) − f(A)
+   ===================================================================== */
+const Gradient = (() => {
+  // the potential landscape: a hill and a basin
+  const f = (x, y) =>
+      1.15*Math.exp(-((x-1)**2 + (y-1)**2)/1.4)
+    - 0.95*Math.exp(-((x+1)**2 + (y+0.8)**2)/1.2);
+  // non-conservative comparison field (pure swirl — not a gradient of anything)
+  const G = (x, y) => [-0.5*y, 0.5*x];
+
+  const PATHS = ['straight', 'arc', 'wiggly'];
+  const NSEG = 500;
+
+  const sec = {
+    state:{t:0, playing:false, speed:1},
+    viewer:null, dyn:null, pathGroup:null, particle:null,
+    A:{x:-1.7, y:-1.5}, B:{x:1.5, y:1.3},
+    currentPath:'straight', nonCon:false,
+    cums:{},                        // cumulative integrals per path for active field
+    pathPts:{},                     // Vector3 lists per path (on the terrain)
+    progLine:null,
+  };
+
+  function pathPoint(kind, s){
+    const A = sec.A, B = sec.B;
+    const dx = B.x - A.x, dy = B.y - A.y, len = Math.hypot(dx, dy) || 1;
+    const px = -dy/len, py = dx/len;                     // unit perpendicular
+    if(kind === 'straight') return {x:A.x + dx*s, y:A.y + dy*s};
+    if(kind === 'arc'){
+      const cx = A.x + dx*0.5 + px*1.9, cy = A.y + dy*0.5 + py*1.9;
+      const u = 1 - s;
+      return {x:u*u*A.x + 2*u*s*cx + s*s*B.x, y:u*u*A.y + 2*u*s*cy + s*s*B.y};
+    }
+    const w = 0.75*Math.sin(3*Math.PI*s);
+    return {x:A.x + dx*s + px*w, y:A.y + dy*s + py*w};
+  }
+
+  // cumulative line integral of active field along a path (midpoint rule)
+  function computeCum(kind){
+    const cum = new Float64Array(NSEG + 1);
+    for(let i = 0; i < NSEG; i++){
+      const p0 = pathPoint(kind, i/NSEG), p1 = pathPoint(kind, (i+1)/NSEG);
+      const xm = (p0.x+p1.x)/2, ym = (p0.y+p1.y)/2;
+      const v = sec.nonCon ? G(xm, ym) : grad2D(f, xm, ym);
+      cum[i+1] = cum[i] + v[0]*(p1.x-p0.x) + v[1]*(p1.y-p0.y);
+    }
+    return cum;
+  }
+
+  sec.init = function(){
+    sec.viewer = makeViewer('cv-gradient', [0, -5.4, 4.0]);
+    addGrid(sec.viewer.scene, 6, -1.15);
+
+    /* --- static terrain surface z = f(x,y), colored by height --- */
+    const SEG = 72, EXT = 2.5;
+    const geo = new THREE.PlaneGeometry(EXT*2, EXT*2, SEG, SEG);
+    const posA = geo.getAttribute('position');
+    let fmin = Infinity, fmax = -Infinity;
+    for(let i = 0; i < posA.count; i++){
+      const z = f(posA.getX(i), posA.getY(i));
+      posA.setZ(i, z);
+      fmin = Math.min(fmin, z); fmax = Math.max(fmax, z);
+    }
+    const cols = new Float32Array(posA.count*3);
+    for(let i = 0; i < posA.count; i++){
+      const rgb = scalarColor((posA.getZ(i)-fmin)/(fmax-fmin));
+      cols[i*3] = rgb[0]; cols[i*3+1] = rgb[1]; cols[i*3+2] = rgb[2];
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    geo.computeVertexNormals();
+    const terrain = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({
+      vertexColors:true, side:THREE.DoubleSide, transparent:true, opacity:0.92}));
+    sec.viewer.scene.add(terrain);
+
+    sec.dyn = new THREE.Group(); sec.viewer.scene.add(sec.dyn);          // arrows (field-dependent)
+    sec.pathGroup = new THREE.Group(); sec.viewer.scene.add(sec.pathGroup);
+    sec.particle = new THREE.Mesh(
+      new THREE.SphereGeometry(0.075, 16, 16),
+      new THREE.MeshBasicMaterial({color:0xc084fc}));
+    sec.viewer.scene.add(sec.particle);
+
+    document.querySelectorAll('#f-chips .chip').forEach(ch => {
+      ch.addEventListener('click', () => { sec.currentPath = ch.dataset.path; sec.rebuild(false); });
+    });
+    el('f-noncon').addEventListener('change', e => { sec.nonCon = e.target.checked; sec.rebuild(false); });
+    el('f-newpts').addEventListener('click', () => {
+      const ra = 1.4 + Math.random()*0.8, aa = Math.random()*TAU;
+      const rb = 1.4 + Math.random()*0.8, ab = aa + Math.PI*(0.55 + Math.random()*0.9);
+      sec.A = {x:ra*Math.cos(aa), y:ra*Math.sin(aa)};
+      sec.B = {x:rb*Math.cos(ab), y:rb*Math.sin(ab)};
+      sec.rebuild(true);
+    });
+    wireTransport('f', sec);
+    sec.rebuild(true);
+  };
+
+  sec.rebuild = function(rebuildArrows){
+    /* --- gradient / swirl arrow field draped on the terrain --- */
+    if(rebuildArrows || sec._lastNonCon !== sec.nonCon){
+      clearGroup(sec.dyn);
+      const arrows = []; let maxMag = 1e-9;
+      const samples = [];
+      for(let x = -2.3; x <= 2.3; x += 0.42) for(let y = -2.3; y <= 2.3; y += 0.42){
+        const v = sec.nonCon ? G(x, y) : grad2D(f, x, y);
+        const m = Math.hypot(v[0], v[1]);
+        samples.push({x, y, v, m});
+        maxMag = Math.max(maxMag, m);
+      }
+      for(const s of samples){
+        if(s.m < 0.02) continue;
+        const L = 0.08 + 0.3*(s.m/maxMag);
+        arrows.push({o:[s.x, s.y, f(s.x, s.y)+0.05], d:[s.v[0]/s.m*L, s.v[1]/s.m*L, 0]});
+      }
+      sec.dyn.add(buildArrows(arrows, {color: sec.nonCon ? 0xf87171 : 0x9f7aea, opacity:0.8}));
+      sec._lastNonCon = sec.nonCon;
+    }
+
+    /* --- integrals along all three paths (real quadrature) --- */
+    for(const k of PATHS) sec.cums[k] = computeCum(k);
+
+    /* --- path curves on the terrain --- */
+    clearGroup(sec.pathGroup);
+    for(const k of PATHS){
+      const pts = [];
+      for(let i = 0; i <= NSEG; i++){
+        const p = pathPoint(k, i/NSEG);
+        pts.push(new THREE.Vector3(p.x, p.y, f(p.x, p.y) + 0.05));
+      }
+      sec.pathPts[k] = pts;
+      const isSel = k === sec.currentPath;
+      sec.pathGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({color: isSel ? 0x6b7280 : 0x394362, transparent:true, opacity: isSel ? 0.85 : 0.5})));
+    }
+    // bright progress line for the selected path (revealed via drawRange)
+    const pgeo = new THREE.BufferGeometry().setFromPoints(sec.pathPts[sec.currentPath]);
+    sec.progLine = new THREE.Line(pgeo, new THREE.LineBasicMaterial({color:0xc084fc, linewidth:2}));
+    sec.progLine.geometry.setDrawRange(0, 0);
+    sec.pathGroup.add(sec.progLine);
+
+    /* --- endpoint markers + labels --- */
+    const za = f(sec.A.x, sec.A.y), zb = f(sec.B.x, sec.B.y);
+    for(const [pt, z, txt, col] of [[sec.A, za, 'A', '#fca5a5'], [sec.B, zb, 'B', '#86efac']]){
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16),
+        new THREE.MeshBasicMaterial({color:col}));
+      s.position.set(pt.x, pt.y, z + 0.05);
+      sec.pathGroup.add(s);
+      const lb = makeLabel(txt, col);
+      lb.position.set(pt.x, pt.y, z + 0.42);
+      sec.pathGroup.add(lb);
+    }
+
+    /* --- panel values --- */
+    el('f-fa').textContent = fmt(za);
+    el('f-fb').textContent = fmt(zb);
+    for(const k of PATHS) el('f-val-' + k).textContent = fmt(sec.cums[k][NSEG]);
+    document.querySelectorAll('#f-chips .chip').forEach(ch =>
+      ch.classList.toggle('sel', ch.dataset.path === sec.currentPath));
+    el('f-rhs').textContent = sec.nonCon ? '—' : fmt(zb - za);
+
+    sec.resetProgress();
+  };
+
+  sec.resetProgress = function(){
+    sec.state.t = 0;
+    sec.refresh();
+  };
+
+  sec.refresh = function(){
+    const t = sec.state.t;
+    const idx = Math.round(t*NSEG);
+    const pts = sec.pathPts[sec.currentPath];
+    const p = pts[Math.min(idx, NSEG)];
+    sec.particle.position.copy(p);
+    sec.progLine.geometry.setDrawRange(0, idx + 1);
+
+    const lhs = sec.cums[sec.currentPath][idx];
+    el('f-lhs').textContent = fmt(lhs);
+    const b = el('f-badge');
+    if(t === 0){ b.className = 'badge'; b.textContent = 'press play to integrate'; return; }
+    if(sec.nonCon){
+      if(t < 1){ b.className = 'badge'; b.textContent = 'integrating along the path…'; return; }
+      const vals = PATHS.map(k => sec.cums[k][NSEG]);
+      const spread = Math.max(...vals) - Math.min(...vals);
+      if(spread > 0.05){ b.className = 'badge alert'; b.textContent = '✗ Path-dependent! The three routes disagree'; }
+      else { b.className = 'badge warn'; b.textContent = 'paths agree here — try new endpoints'; }
+      return;
+    }
+    const za = f(sec.A.x, sec.A.y), zb = f(sec.B.x, sec.B.y);
+    updateBadge('f-badge', lhs, zb - za, t >= 1, 'hiking and accumulating ∫∇f·dr…');
+  };
+
+  sec.tick = function(dt){
+    if(sec.state.playing){
+      sec.state.t = Math.min(1, sec.state.t + dt*sec.state.speed/DUR);
+      if(sec.state.t >= 1){ sec.state.playing = false; setPlayLabel('f', false); }
+      sec.refresh();
+    }
+  };
+  return sec;
+})();
+
+/* =====================================================================
+   Tabs, header, main loop
+   ===================================================================== */
+const META = {
+  greens:   {name:"Green's Theorem",     formula:'∮<sub>C</sub> P dx + Q dy &nbsp;=&nbsp; ∬<sub>D</sub> (∂Q/∂x − ∂P/∂y) dA', accent:'var(--greens)'},
+  stokes:   {name:"Stokes' Theorem",     formula:'∮<sub>C</sub> F · dr &nbsp;=&nbsp; ∬<sub>S</sub> (∇×F) · dS', accent:'var(--stokes)'},
+  diverg:   {name:'Divergence Theorem',  formula:'∬<sub>S</sub> F · dS &nbsp;=&nbsp; ∭<sub>V</sub> (∇·F) dV', accent:'var(--diverg)'},
+  gradient: {name:'Gradient Theorem',    formula:'∫<sub>C</sub> ∇f · dr &nbsp;=&nbsp; f(B) − f(A)', accent:'var(--gradient)'},
+  overview: {name:'The Big Picture',     formula:'∫<sub>∂Ω</sub> ω &nbsp;=&nbsp; ∫<sub>Ω</sub> dω', accent:'var(--overview)'},
+};
+const sections = {greens:Greens, stokes:Stokes, diverg:Diverg, gradient:Gradient};
+let activeTab = 'greens';
+
+function selectTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === 'sec-' + tab));
+  const m = META[tab];
+  el('hdr-name').textContent = m.name;
+  el('hdr-name').style.color = m.accent;
+  el('hdr-formula').innerHTML = m.formula;
+  const sec = sections[tab];
+  if(sec && sec.viewer) sec.viewer.resize();
+}
+document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.tab)));
+
+window.addEventListener('resize', () => {
+  const sec = sections[activeTab];
+  if(sec && sec.viewer) sec.viewer.resize();
+});
+
+/* init everything */
+Greens.init(); Stokes.init(); Diverg.init(); Gradient.init();
+selectTab('greens');
+
+const clock = new THREE.Clock();
+(function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const sec = sections[activeTab];
+  if(sec && sec.viewer){
+    sec.tick(dt);
+    sec.viewer.controls.update();
+    sec.viewer.renderer.render(sec.viewer.scene, sec.viewer.camera);
+  }
+})();
+</script>
+</body>
+</html>
