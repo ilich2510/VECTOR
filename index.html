@@ -22,11 +22,94 @@
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{height:100%;}
   body{
-    background:radial-gradient(1200px 700px at 70% -10%, #17203c 0%, var(--bg) 55%);
+    background:radial-gradient(1200px 700px at 70% -10%, var(--bg-hi,#17203c) 0%, var(--bg) 55%);
     color:var(--text);
     font-family:"Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+    display:flex; flex-direction:row; height:100vh; overflow:hidden;
   }
+  .app-col{flex:1; min-width:0; display:flex; flex-direction:column; height:100vh;}
+  /* ---------- reference library panel (left) ---------- */
+  #ref-panel{
+    width:320px; min-width:0; flex-shrink:0; height:100vh;
+    display:flex; flex-direction:column;
+    background:rgba(13,19,38,.92); border-right:1px solid var(--line);
+    backdrop-filter:blur(6px);
+  }
+  #ref-panel.collapsed{display:none;}
+  .ref-head{
+    padding:12px 14px 10px; border-bottom:1px solid var(--line); flex-shrink:0;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .ref-title-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .ref-title{font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); font-weight:600;}
+  #ref-search{
+    width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:7px 10px; font-size:13px; font-family:inherit;
+  }
+  #ref-search:focus{outline:1px solid var(--overview);}
+  #ref-search::placeholder{color:var(--dim); opacity:.7;}
+  .ref-count{font-size:11px; color:var(--dim);}
+  .ref-body{flex:1; overflow-y:auto; padding:12px 12px 24px; display:flex; flex-direction:column; gap:10px;}
+  .ref-body::-webkit-scrollbar{width:9px;}
+  .ref-body::-webkit-scrollbar-thumb{background:#26314f; border-radius:5px;}
+  .ref-group-title{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    margin:8px 2px 0; color:var(--rg,#8fa0c2);
+  }
+  .ref-card{
+    border:1px solid var(--line); border-left:3px solid var(--rg,#44507a);
+    border-radius:10px; background:rgba(20,28,51,.6); padding:10px 12px;
+  }
+  .ref-card h4{font-size:13px; color:var(--text); margin-bottom:5px;}
+  .ref-card .rc-frm{
+    font-family:Georgia,"Times New Roman",serif; font-style:italic; font-size:14.5px;
+    color:var(--rg,#dbe4f5); margin:4px 0 6px; line-height:1.5;
+  }
+  .ref-card .rc-frm sub, .ref-card .rc-frm sup{font-size:.62em; font-style:normal; color:var(--dim);}
+  .ref-card p, .ref-card li{font-size:12.5px; line-height:1.55; color:var(--dim);}
+  .ref-card p b{color:var(--text);}
+  .ref-card ul{padding-left:16px; margin-top:3px;}
+  .ref-card.hidden, .ref-group-title.hidden{display:none;}
+  .ref-card mark{background:rgba(250,204,21,.35); color:#fff; border-radius:3px; padding:0 1px;}
+  .ref-empty{font-size:13px; color:var(--dim); text-align:center; padding:20px 8px; display:none;}
+  /* resizer bar */
+  #ref-resizer{
+    width:6px; flex-shrink:0; cursor:col-resize; background:transparent;
+    border-right:1px solid var(--line); transition:background .15s;
+  }
+  #ref-resizer:hover, #ref-resizer.dragging{background:rgba(250,204,21,.25);}
+  #ref-resizer.collapsed{display:none;}
+  .icon-btn{
+    background:var(--panel2); color:var(--dim); border:1px solid var(--line);
+    border-radius:7px; padding:3px 9px; font-size:12px; font-family:inherit; cursor:pointer;
+  }
+  .icon-btn:hover{color:var(--text); border-color:var(--overview);}
+  #ref-open{
+    position:fixed; left:10px; top:10px; z-index:60; display:none;
+  }
+  #ref-open.show{display:block;}
+  /* ---------- header right: bg color + social ---------- */
+  .hdr-right{margin-left:auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .bg-picker{display:flex; align-items:center; gap:5px;}
+  .bg-picker .bg-label{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+  .bg-swatch{
+    width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line);
+    cursor:pointer; padding:0; flex-shrink:0;
+  }
+  .bg-swatch:hover{border-color:var(--text);}
+  .bg-swatch.sel{border-color:var(--overview); box-shadow:0 0 0 2px rgba(250,204,21,.35);}
+  #bg-custom{
+    width:22px; height:22px; border:none; background:transparent; cursor:pointer; padding:0;
+  }
+  .social{display:flex; align-items:center; gap:8px;}
+  .social .handle{font-size:13px; font-weight:600; color:var(--text); letter-spacing:.02em;}
+  .social a{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:7px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--dim); text-decoration:none; transition:color .15s, border-color .15s;
+  }
+  .social a:hover{color:#fff; border-color:var(--overview);}
+  .social a svg{width:15px; height:15px; fill:currentColor;}
   /* ---------- header & nav ---------- */
   header{
     padding:10px 18px 8px;
@@ -161,22 +244,220 @@
   .ov-note b{color:var(--text);}
   /* ---------- responsive ---------- */
   @media (max-width: 920px){
-    body{overflow:auto;}
+    body{overflow:auto; flex-direction:column; height:auto;}
+    .app-col{height:auto;}
     main{overflow:visible;}
     .section{flex-direction:column; height:auto;}
     .section.active{display:flex;}
     .canvas-wrap{height:52vw; min-height:300px; max-height:420px; flex:none;}
     .panel{width:100%;}
     header .thm-formula{font-size:15px;}
+    #ref-panel{width:100% !important; height:auto; max-height:45vh; border-right:none; border-bottom:1px solid var(--line);}
+    #ref-resizer{display:none;}
+    #ref-open{position:static;}
   }
 </style>
 </head>
 <body>
 
+<!-- ================= REFERENCE LIBRARY (left, resizable) ================= -->
+<aside id="ref-panel">
+  <div class="ref-head">
+    <div class="ref-title-row">
+      <span class="ref-title">📚 Reference Library</span>
+      <button class="icon-btn" id="ref-close" title="Collapse panel">◀</button>
+    </div>
+    <input type="search" id="ref-search" placeholder="Search theorems, formulas, terms…">
+    <span class="ref-count" id="ref-count"></span>
+  </div>
+  <div class="ref-body" id="ref-body">
+
+    <div class="ref-group-title" style="--rg:var(--greens)" data-group="greens">Green's Theorem</div>
+    <div class="ref-card" style="--rg:var(--greens)" data-group="greens">
+      <h4>Statement (circulation form)</h4>
+      <div class="rc-frm">∮<sub>C</sub> P dx + Q dy = ∬<sub>D</sub> (∂Q/∂x − ∂P/∂y) dA</div>
+      <p>Let <b>C</b> be a positively oriented (counter-clockwise), piecewise-smooth, simple closed
+      curve in the plane and <b>D</b> the region it encloses. If P and Q have continuous first
+      partial derivatives on an open region containing D, the circulation of F = (P, Q) around C
+      equals the double integral of the scalar curl over D.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--greens)" data-group="greens">
+      <h4>Flux (divergence) form</h4>
+      <div class="rc-frm">∮<sub>C</sub> F · n ds = ∬<sub>D</sub> (∂P/∂x + ∂Q/∂y) dA</div>
+      <p>Replacing the tangential component by the outward normal component turns Green's theorem
+      into a 2-D divergence theorem: the outward flux across the boundary equals the total
+      divergence inside.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--greens)" data-group="greens">
+      <h4>Area by line integral</h4>
+      <div class="rc-frm">A = ½ ∮<sub>C</sub> (x dy − y dx) = ∮<sub>C</sub> x dy = −∮<sub>C</sub> y dx</div>
+      <p>Choosing fields whose curl is 1 lets you compute the <b>area</b> of a region purely from
+      its boundary — the principle behind the mechanical planimeter.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--greens)" data-group="greens">
+      <h4>Hypotheses &amp; pitfalls</h4>
+      <p>The curve must be <b>simple</b> (no self-intersections), <b>closed</b>, and traversed
+      <b>counter-clockwise</b>; clockwise orientation flips the sign. P and Q must be C¹ on all of D:
+      the field F = (−y, x)/(x² + y²) has zero curl away from the origin, yet circulation 2π around
+      it — the singularity at the origin breaks the hypotheses.</p>
+    </div>
+
+    <div class="ref-group-title" style="--rg:var(--stokes)" data-group="stokes">Stokes' Theorem</div>
+    <div class="ref-card" style="--rg:var(--stokes)" data-group="stokes">
+      <h4>Statement</h4>
+      <div class="rc-frm">∮<sub>C</sub> F · dr = ∬<sub>S</sub> (∇×F) · dS</div>
+      <p>Let <b>S</b> be an oriented, piecewise-smooth surface bounded by a simple, closed,
+      piecewise-smooth curve <b>C</b> with positive orientation (right-hand rule: fingers along C,
+      thumb along the normal n). For a C¹ vector field F, the circulation around the boundary
+      equals the flux of the curl through the surface.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--stokes)" data-group="stokes">
+      <h4>Curl — meaning</h4>
+      <div class="rc-frm">∇×F = (∂F<sub>z</sub>/∂y − ∂F<sub>y</sub>/∂z, ∂F<sub>x</sub>/∂z − ∂F<sub>z</sub>/∂x, ∂F<sub>y</sub>/∂x − ∂F<sub>x</sub>/∂y)</div>
+      <p>The curl measures <b>micro-rotation</b>: a tiny paddle wheel placed in the flow spins
+      fastest about the axis of ∇×F, at angular speed ½|∇×F|. A field with ∇×F = 0 everywhere is
+      called <b>irrotational</b>.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--stokes)" data-group="stokes">
+      <h4>Surface independence</h4>
+      <p>Any two oriented surfaces sharing the same boundary curve give the <b>same</b> flux of curl —
+      hemisphere, paraboloid or flat disk. Consequence: the flux of a curl through any <b>closed</b>
+      surface is zero (a closed surface has empty boundary).</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--stokes)" data-group="stokes">
+      <h4>Applications &amp; special cases</h4>
+      <p><b>Faraday's law</b>: ∮ E · dr = −dΦ<sub>B</sub>/dt — a changing magnetic flux induces a
+      circulating electric field. <b>Ampère's law</b>: ∮ B · dr = μ₀ I<sub>enc</sub>. When S lies flat
+      in the xy-plane, Stokes' theorem reduces exactly to Green's theorem.</p>
+    </div>
+
+    <div class="ref-group-title" style="--rg:var(--diverg)" data-group="diverg">Divergence Theorem</div>
+    <div class="ref-card" style="--rg:var(--diverg)" data-group="diverg">
+      <h4>Statement (Gauss–Ostrogradsky)</h4>
+      <div class="rc-frm">∬<sub>S</sub> F · dS = ∭<sub>V</sub> (∇·F) dV</div>
+      <p>Let <b>V</b> be a solid region bounded by a closed, piecewise-smooth surface <b>S</b>
+      oriented by the <b>outward</b> normal. For a C¹ field F, the net outward flux through S equals
+      the total divergence inside V.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--diverg)" data-group="diverg">
+      <h4>Divergence — meaning</h4>
+      <div class="rc-frm">∇·F = ∂F<sub>x</sub>/∂x + ∂F<sub>y</sub>/∂y + ∂F<sub>z</sub>/∂z</div>
+      <p>Divergence is the <b>source density</b>: positive where fluid is created (a source),
+      negative where it disappears (a sink). A field with ∇·F = 0 is <b>incompressible</b>
+      (solenoidal) — whatever flows into any region flows back out.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--diverg)" data-group="diverg">
+      <h4>Applications</h4>
+      <p><b>Gauss's law</b>: ∬ E · dS = Q<sub>enc</sub>/ε₀. <b>Continuity equation</b>:
+      ∂ρ/∂t + ∇·(ρv) = 0 — conservation of mass in fluid flow. Also the divergence form of the
+      <b>heat equation</b> and the derivation of Archimedes' buoyancy force.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--diverg)" data-group="diverg">
+      <h4>Hypotheses &amp; pitfalls</h4>
+      <p>S must be <b>closed</b> and oriented <b>outward</b>; F must be C¹ throughout V. The inverse
+      square field F = r̂/r² has ∇·F = 0 away from the origin, yet flux 4π through any surface
+      enclosing it — the origin singularity must be excluded (this is exactly how Gauss's law
+      encodes a point charge).</p>
+    </div>
+
+    <div class="ref-group-title" style="--rg:var(--gradient)" data-group="gradient">Gradient Theorem</div>
+    <div class="ref-card" style="--rg:var(--gradient)" data-group="gradient">
+      <h4>Statement (FT of line integrals)</h4>
+      <div class="rc-frm">∫<sub>C</sub> ∇f · dr = f(B) − f(A)</div>
+      <p>If <b>C</b> is any piecewise-smooth curve from A to B and f is a C¹ scalar field, the line
+      integral of its gradient depends only on the <b>endpoints</b> — never on the route taken.
+      It is the direct generalization of the Fundamental Theorem of Calculus to curves.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--gradient)" data-group="gradient">
+      <h4>Conservative fields — equivalences</h4>
+      <p>For a C¹ field F on an open, <b>simply connected</b> region, these are equivalent:</p>
+      <ul>
+        <li>F = ∇f for some potential f (F is conservative)</li>
+        <li>∫ F · dr is path-independent</li>
+        <li>∮ F · dr = 0 around every closed loop</li>
+        <li>∇×F = 0 (in 2-D: ∂Q/∂x = ∂P/∂y)</li>
+      </ul>
+    </div>
+    <div class="ref-card" style="--rg:var(--gradient)" data-group="gradient">
+      <h4>Applications</h4>
+      <p><b>Work–energy</b>: for a conservative force, W = −ΔU — define potential energy U = −f and
+      work done is independent of the path. Gravity and the electrostatic field are conservative;
+      friction and magnetic forces on moving charges are not.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--gradient)" data-group="gradient">
+      <h4>Pitfall — holes matter</h4>
+      <p>On a region with a hole (not simply connected), ∇×F = 0 does <b>not</b> imply conservative:
+      the swirl F = (−y, x)/(x² + y²) is curl-free on the punctured plane but has circulation 2π
+      around the origin. Topology decides whether a potential exists.</p>
+    </div>
+
+    <div class="ref-group-title" style="--rg:var(--overview)" data-group="unify">The Big Picture</div>
+    <div class="ref-card" style="--rg:var(--overview)" data-group="unify">
+      <h4>Generalized Stokes theorem</h4>
+      <div class="rc-frm">∫<sub>∂Ω</sub> ω = ∫<sub>Ω</sub> dω</div>
+      <p>All four theorems (and the Fundamental Theorem of Calculus) are one statement in the
+      language of differential forms: the integral of a form ω over the boundary ∂Ω equals the
+      integral of its exterior derivative dω over the region Ω. Interior contributions telescope;
+      only the boundary survives.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--overview)" data-group="unify">
+      <h4>The dictionary</h4>
+      <p><b>FTC</b> — interval [a,b], boundary {a,b}: ∫f′dx = f(b) − f(a).<br>
+      <b>Gradient</b> — curve, boundary = endpoints: ∫∇f·dr = f(B) − f(A).<br>
+      <b>Green</b> — plane region, boundary = closed curve.<br>
+      <b>Stokes</b> — surface in 3-D, boundary = closed curve.<br>
+      <b>Divergence</b> — solid volume, boundary = closed surface.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--overview)" data-group="unify">
+      <h4>Operator identities</h4>
+      <div class="rc-frm">∇×(∇f) = 0 &nbsp;·&nbsp; ∇·(∇×F) = 0 &nbsp;·&nbsp; ∇·∇f = ∇²f</div>
+      <p>Curl of a gradient vanishes (gradients don't swirl); divergence of a curl vanishes
+      (curls have no sources). These are the reason d(dω) = 0 in the language of forms, and they
+      generate the sequences behind potential theory and the Helmholtz decomposition
+      F = −∇φ + ∇×A.</p>
+    </div>
+    <div class="ref-card" style="--rg:var(--overview)" data-group="unify">
+      <h4>A little history</h4>
+      <p><b>George Green</b> (1828) published his theorem in a self-financed essay on electricity and
+      magnetism. <b>Lord Kelvin</b> communicated the surface theorem to <b>George Stokes</b>, who set
+      it as a Cambridge exam problem (1854). <b>Gauss</b> and <b>Ostrogradsky</b> proved the divergence
+      theorem for flux of fluids and gravitation. <b>Élie Cartan</b> (1945) unified them all with
+      differential forms.</p>
+    </div>
+
+    <div class="ref-empty" id="ref-empty">No entries match your search.</div>
+  </div>
+</aside>
+<div id="ref-resizer" title="Drag to resize"></div>
+<button class="icon-btn" id="ref-open" title="Open reference library">📚 ▶</button>
+
+<div class="app-col">
+
 <header>
   <span class="app-title">Vector Calculus — Fundamental Theorems</span>
   <span class="thm-name" id="hdr-name"></span>
   <span class="thm-formula" id="hdr-formula"></span>
+  <div class="hdr-right">
+    <div class="bg-picker" id="bg-picker">
+      <span class="bg-label">BG</span>
+      <button class="bg-swatch sel" data-bg="#0b1020" style="background:#0b1020" title="Deep space (default)"></button>
+      <button class="bg-swatch" data-bg="#0d1b2a" style="background:#0d1b2a" title="Midnight blue"></button>
+      <button class="bg-swatch" data-bg="#16121f" style="background:#16121f" title="Violet night"></button>
+      <button class="bg-swatch" data-bg="#0c1712" style="background:#0c1712" title="Deep forest"></button>
+      <button class="bg-swatch" data-bg="#1c1114" style="background:#1c1114" title="Dark wine"></button>
+      <button class="bg-swatch" data-bg="#101010" style="background:#101010" title="Pure black"></button>
+      <input type="color" id="bg-custom" value="#0b1020" title="Custom background color">
+    </div>
+    <div class="social">
+      <span class="handle">@Astroilich</span>
+      <a href="https://www.instagram.com/astroilich/" target="_blank" rel="noopener" title="Instagram — @astroilich">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.25 2.2.42.56.22.96.48 1.38.9.42.42.68.82.9 1.38.17.42.36 1.05.42 2.23.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.06 1.18-.25 1.81-.42 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.17-1.05.36-2.23.42-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-1.18-.06-1.81-.25-2.23-.42a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.17-.42-.36-1.05-.42-2.23C2.2 15.6 2.2 15.2 2.2 12s0-3.58.07-4.85c.06-1.18.25-1.81.42-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.17 1.05-.36 2.23-.42C8.4 2.2 8.8 2.2 12 2.2m0-2.2C8.7 0 8.3 0 7.05.07 5.78.13 4.9.33 4.14.63a5.9 5.9 0 0 0-2.13 1.38A5.9 5.9 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05 0 8.3 0 8.7 0 12s0 3.7.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13a5.9 5.9 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.3 24 8.7 24 12 24s3.7 0 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.38 5.9 5.9 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.07-1.25.07-1.65.07-4.95s0-3.7-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.38-2.13A5.9 5.9 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.7 0 15.3 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm7.85-10.4a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"/></svg>
+      </a>
+      <a href="https://www.facebook.com/profile.php?id=61585484730083" target="_blank" rel="noopener" title="Facebook — Astroilich">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
+      </a>
+    </div>
+  </div>
 </header>
 
 <nav id="tabs">
@@ -459,6 +740,8 @@
   </section>
 
 </main>
+
+</div><!-- /.app-col -->
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1448,6 +1731,120 @@ window.addEventListener('resize', () => {
   const sec = sections[activeTab];
   if(sec && sec.viewer) sec.viewer.resize();
 });
+
+/* =====================================================================
+   Reference library panel: search, collapse, drag-resize
+   ===================================================================== */
+const RefPanel = (() => {
+  const panel   = el('ref-panel');
+  const resizer = el('ref-resizer');
+  const openBtn = el('ref-open');
+  const search  = el('ref-search');
+  const cards   = [...document.querySelectorAll('.ref-card')];
+  const groups  = [...document.querySelectorAll('.ref-group-title')];
+  const count   = el('ref-count');
+  const empty   = el('ref-empty');
+  cards.forEach(c => c.dataset.orig = c.innerHTML);
+
+  const resizeViewers = () => { const s = sections[activeTab]; if(s && s.viewer) s.viewer.resize(); };
+
+  /* --- search with highlight --- */
+  function highlight(node, q){
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    while(walker.nextNode()){
+      const t = walker.currentNode;
+      if(t.nodeValue.toLowerCase().includes(q)) hits.push(t);
+    }
+    for(const t of hits){
+      const frag = document.createDocumentFragment();
+      let rest = t.nodeValue;
+      while(true){
+        const i = rest.toLowerCase().indexOf(q);
+        if(i < 0){ frag.appendChild(document.createTextNode(rest)); break; }
+        frag.appendChild(document.createTextNode(rest.slice(0, i)));
+        const m = document.createElement('mark');
+        m.textContent = rest.slice(i, i + q.length);
+        frag.appendChild(m);
+        rest = rest.slice(i + q.length);
+      }
+      t.parentNode.replaceChild(frag, t);
+    }
+  }
+  function applyFilter(){
+    const q = search.value.trim().toLowerCase();
+    let shown = 0;
+    const groupHas = {};
+    for(const c of cards){
+      c.innerHTML = c.dataset.orig;
+      const match = !q || c.textContent.toLowerCase().includes(q);
+      c.classList.toggle('hidden', !match);
+      if(match){
+        shown++;
+        groupHas[c.dataset.group] = true;
+        if(q) highlight(c, q);
+      }
+    }
+    for(const g of groups) g.classList.toggle('hidden', !groupHas[g.dataset.group]);
+    count.textContent = q ? shown + ' of ' + cards.length + ' entries' : cards.length + ' reference entries';
+    empty.style.display = shown === 0 ? 'block' : 'none';
+  }
+  search.addEventListener('input', applyFilter);
+  applyFilter();
+
+  /* --- collapse / expand --- */
+  function setCollapsed(on){
+    panel.classList.toggle('collapsed', on);
+    resizer.classList.toggle('collapsed', on);
+    openBtn.classList.toggle('show', on);
+    resizeViewers();
+  }
+  el('ref-close').addEventListener('click', () => setCollapsed(true));
+  openBtn.addEventListener('click', () => setCollapsed(false));
+
+  /* --- drag to resize --- */
+  let dragging = false;
+  resizer.addEventListener('pointerdown', e => {
+    dragging = true; resizer.classList.add('dragging');
+    resizer.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  resizer.addEventListener('pointermove', e => {
+    if(!dragging) return;
+    const w = Math.max(200, Math.min(window.innerWidth * 0.55, e.clientX));
+    panel.style.width = w + 'px';
+    resizeViewers();
+  });
+  resizer.addEventListener('pointerup', () => { dragging = false; resizer.classList.remove('dragging'); resizeViewers(); });
+  return {setCollapsed};
+})();
+
+/* =====================================================================
+   Background color switcher
+   ===================================================================== */
+(() => {
+  const lighten = (hex, amt) => {
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, (n >> 16 & 255) + amt),
+          g = Math.min(255, (n >> 8  & 255) + amt),
+          b = Math.min(255, (n & 255) + amt);
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  };
+  const swatches = [...document.querySelectorAll('.bg-swatch')];
+  const custom = el('bg-custom');
+  function applyBg(color, save = true){
+    document.documentElement.style.setProperty('--bg', color);
+    document.documentElement.style.setProperty('--bg-hi', lighten(color, 18));
+    swatches.forEach(s => s.classList.toggle('sel', s.dataset.bg.toLowerCase() === color.toLowerCase()));
+    if(/^#[0-9a-f]{6}$/i.test(color)) custom.value = color;
+    if(save){ try{ localStorage.setItem('vc-bg', color); }catch(e){} }
+  }
+  swatches.forEach(s => s.addEventListener('click', () => applyBg(s.dataset.bg)));
+  custom.addEventListener('input', e => applyBg(e.target.value));
+  let saved = null;
+  try{ saved = localStorage.getItem('vc-bg'); }catch(e){}
+  if(saved) applyBg(saved, false);
+})();
 
 /* init everything */
 Greens.init(); Stokes.init(); Diverg.init(); Gradient.init();
